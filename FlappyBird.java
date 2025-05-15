@@ -68,7 +68,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     FlappyBird() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
-        // setBackground(Color.blue);
         setFocusable(true);
         addKeyListener(this);
 
@@ -138,14 +137,14 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
 
         //score
-        g.setColor(Color.white);
+        g.setColor(Color.BLACK);
 
-        g.setFont(new Font("Arial", Font.PLAIN, 32));
+        g.setFont(new Font("Pixelify Sans", Font.PLAIN, 32));
         if (gameOver) {
-            g.drawString("Game Over: " + String.valueOf((int) score), 10, 35);
+            g.drawString("Game Over: " + String.valueOf((int) score), 70, 240);
         }
         else {
-            g.drawString(String.valueOf((int) score), 10, 35);
+            g.drawString("Score:" + String.valueOf((int) score), 10, 35);
         }
 
     }
