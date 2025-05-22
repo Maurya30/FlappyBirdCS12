@@ -8,6 +8,9 @@ import javax.swing.*;
 public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int boardWidth = 360;
     int boardHeight = 640;
+    int lastScoreMilestone = 0;
+
+//    double scoreMultiplier = 1;
 
     // Images
     Image backgroundImg;
@@ -29,7 +32,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     // game logic
     Bird bird;
-    int velocityX = -4;
+    double velocityX = -4;
     int velocityY = 0;
     int gravity = 1;
 
@@ -55,8 +58,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         bird = new Bird(birdX, birdY, birdWidth, birdHeight, birdImg);
         pipes = new ArrayList<Pipe>();
 
-        //place pipes timer
-        placePipeTimer = new Timer(1500, new ActionListener() {
+        //place pipes timer(int) (1500/scoreMultiplier*velocityX)
+        placePipeTimer = new Timer((int) (1500) , new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Code to be executed
@@ -113,6 +116,17 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
 
     }
+    private void updatePipeTimerDelay() {
+        // Base delay at velocityX = -4 is 1500ms
+        int baseSpeed = -4;
+        int baseDelay = 1500;
+        int newDelay = (int) (baseDelay * baseSpeed / velocityX);
+
+        // Prevent delay from going too low
+        newDelay = Math.max(newDelay, 500);
+
+        placePipeTimer.setDelay(newDelay);
+    }
 
     public void move() {
         //bird
@@ -128,16 +142,26 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             if (!pipe.passed && bird.x > pipe.x + pipe.width) {
                 score += 0.5; //0.5 because there are 2 pipes! so 0.5*2 = 1, 1 for each set of pipes
                 pipe.passed = true;
+
             }
 
             if (collision(bird, pipe)) {
                 gameOver = true;
             }
         }
+        if ((int) score % 2 == 0 && score > 0 && (int) score != lastScoreMilestone) {
+            velocityX = Math.max(velocityX - 1, -12); // Increase speed gradually
+            updatePipeTimerDelay();
+            lastScoreMilestone = (int) score;
+        }
 
         if (bird.y > boardHeight) {
             gameOver = true;
         }
+//        if (score%2 == 0 && score >0){
+//            scoreMultiplier *= 1.2;
+//        }
+
     }
 
     boolean collision(Bird a, Pipe b) {
@@ -170,7 +194,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 pipes.clear();
                 gameOver = false;
                 score = 0;
+                velocityX = -4;
+                lastScoreMilestone = 0;
+
+                updatePipeTimerDelay();
+//                scoreMultiplier = 1;
                 gameLoop.start();
+
                 placePipeTimer.start();
             }
         }
