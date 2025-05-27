@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
+import java.io.*;
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int boardWidth = 360;
@@ -17,6 +18,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     Image birdImg;
     Image topPipeImg;
     Image bottomPipeImg;
+    Image coinImg;
 
     // Bird variables
     int birdX = boardWidth/8;
@@ -34,7 +36,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     Bird bird;
     double velocityX = -4;
     int velocityY = 0;
-    int gravity = 1;
+    int gravity = 1 ;
 
     ArrayList<Pipe> pipes;
     Random random = new Random();
@@ -53,6 +55,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         birdImg = new ImageIcon(getClass().getResource("./flappybird.png")).getImage();
         topPipeImg = new ImageIcon(getClass().getResource("./toppipe.png")).getImage();
         bottomPipeImg = new ImageIcon(getClass().getResource("./bottompipe.png")).getImage();
+        coinImg = new ImageIcon(getClass().getResource("./coin.png")).getImage();
 
         // Use new Bird constructor
         bird = new Bird(birdX, birdY, birdWidth, birdHeight, birdImg);
@@ -180,15 +183,31 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             gameLoop.stop();
         }
     }
+    private void highscore(double s){
+        s = score;
+        String str = Double.toString(s);
+        try
+        {
+
+            FileWriter fw = new FileWriter("highScore.txt");
+            PrintWriter pw = new PrintWriter(fw);
+            pw.println(str);
+            pw.close();
+        }
+        catch(IOException e)
+        {
+        }
+    }
 
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             // System.out.println("JUMP!");
-            velocityY = -9;
+            velocityY = -10;
 
             if (gameOver) {
-                //restart game by resetting conditions
+
+                highscore(score);
                 bird.y = birdY;
                 velocityY = 0;
                 pipes.clear();
@@ -205,6 +224,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
         }
     }
+
     public static void main(String[] args) throws Exception {
         int boardWidth = 360;
         int boardHeight = 640;
