@@ -102,12 +102,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     public void draw(Graphics g) {
         // Background with different color if in reverse gravity mode
-        if (reverseGravityActive) {
-            g.setColor(new Color(135, 206, 250)); // Light blue background
-            g.fillRect(0, 0, boardWidth, boardHeight);
-        } else {
+
             g.drawImage(backgroundImg, 0, 0, this.boardWidth, this.boardHeight, null);
-        }
+
 
         // Bird
         g.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height, null);
