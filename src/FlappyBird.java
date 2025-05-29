@@ -1,7 +1,6 @@
 // FlappyBird.java
 import java.awt.*;
 import java.awt.event.*;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 import javax.swing.*;
@@ -16,8 +15,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     boolean reverseGravityActive = false;
     boolean reverseGravityTriggered = false;
     long reverseGravityStartTime;
-    final int REVERSE_GRAVITY_DURATION = 20000; // 20 seconds in milliseconds
-    final int REVERSE_GRAVITY_THRESHOLD = 1;
+    final int REVERSE_GRAVITY_DURATION = 10000; // 20 seconds in milliseconds
+    final int REVERSE_GRAVITY_THRESHOLD = 2;
     final int REVERSE_JUMP_FORCE = 10; // Jump force in reverse mode
 
     // Images
@@ -52,6 +51,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     Timer placePipeTimer;
     boolean gameOver = false;
     double score = 0;
+    double hs = readHighScore();
+
+    String highScore;
 
     FlappyBird() {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
@@ -86,7 +88,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     void placePipes() {
         int randomPipeY = (int) (pipeY - pipeHeight/4 - Math.random()*(pipeHeight/2));
-        int openingSpace = boardHeight/4;
+        int openingSpace = boardHeight/3;
 
         Pipe topPipe = new Pipe(pipeX, randomPipeY, pipeWidth, pipeHeight, topPipeImg);
         pipes.add(topPipe);
@@ -121,6 +123,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
         if (gameOver) {
             g.drawString("Game Over: " + (int) score, 70, 240);
+            g.setColor(Color.WHITE);
+
+            g.drawString("HighScore: " + (int) hs, 70, 280);
         } else {
             g.drawString("Score:" + (int) score, 10, 35);
 
@@ -136,7 +141,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     private void updatePipeTimerDelay() {
         int baseSpeed = -4;
-        int baseDelay = 1500;
+        int baseDelay = 1800;
         int newDelay = (int) (baseDelay * baseSpeed / velocityX);
         newDelay = Math.max(newDelay, 500);
         placePipeTimer.setDelay(newDelay);
@@ -222,12 +227,38 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             gameLoop.stop();
         }
     }
+    private double readHighScore(){
+        try {
+            FileReader fr = new FileReader("highScore.txt");
+            BufferedReader br = new BufferedReader(fr);
+            while ((highScore=br.readLine()) != null)
+            {
+                hs = Double.parseDouble(highScore);
+            }
+            br.close();
+        }
+        catch (IOException e){
+
+        }
+        return hs;
+    }
 
     private void saveHighscore() {
         try {
+
+            FileReader fr = new FileReader("highScore.txt");
+            BufferedReader br = new BufferedReader(fr);
+            while ((highScore=br.readLine()) != null)
+            {
+                hs = Double.parseDouble(highScore);
+            }
+            br.close();
             FileWriter fw = new FileWriter("highScore.txt");
             PrintWriter pw = new PrintWriter(fw);
-            pw.println((int) score);
+            if (score > hs){
+                System.out.println(score + " , " + hs );
+                pw.println((int) score);
+            }
             pw.close();
         } catch (IOException e) {
             System.err.println("Error saving high score: " + e.getMessage());
