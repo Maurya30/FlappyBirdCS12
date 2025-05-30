@@ -230,41 +230,26 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             gameLoop.stop();
         }
     }
-    private double readHighScore(){
-        try {
-            FileReader fr = new FileReader("highScore.txt");
-            BufferedReader br = new BufferedReader(fr);
-            while ((highScore=br.readLine()) != null)
-            {
-                hs = Double.parseDouble(highScore);
+    private double readHighScore() {
+        try (BufferedReader br = new BufferedReader(new FileReader("highScore.txt"))) {
+            String line = br.readLine();
+            if (line != null && !line.isEmpty()) {
+                return Double.parseDouble(line);
             }
-            br.close();
+        } catch (IOException | NumberFormatException e) {
+            System.err.println("Couldn't read high score: " + e.getMessage());
         }
-        catch (IOException e){
-
-        }
-        return hs;
+        return 0.0; // default if no file or invalid content
     }
 
     private void saveHighscore() {
-        try {
-
-            FileReader fr = new FileReader("highScore.txt");
-            BufferedReader br = new BufferedReader(fr);
-            while ((highScore=br.readLine()) != null)
-            {
-                hs = Double.parseDouble(highScore);
+        if (this.score > this.hs) {
+            try (PrintWriter pw = new PrintWriter(new FileWriter("highScore.txt"))) {
+                pw.println((int)this.score); // save as integer if you don't want decimals
+                this.hs = this.score; // update in-memory high score too
+            } catch (IOException e) {
+                System.err.println("Error saving high score: " + e.getMessage());
             }
-            br.close();
-            FileWriter fw = new FileWriter("highScore.txt");
-            PrintWriter pw = new PrintWriter(fw);
-            if (score > hs){
-                System.out.println(score + " , " + hs );
-                pw.println((int) score);
-            }
-            pw.close();
-        } catch (IOException e) {
-            System.err.println("Error saving high score: " + e.getMessage());
         }
     }
 
