@@ -45,6 +45,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int gravity = 1;
 
     ArrayList<Pipe> pipes;
+    ArrayList<Coin> coins = new ArrayList<>();
     Random random = new Random();
 
     Timer gameLoop;
@@ -52,6 +53,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     boolean gameOver = false;
     double score = 0;
     double hs = readHighScore();
+    int coinsCollected = 0;
+
 
     String highScore;
 
@@ -95,6 +98,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
         Pipe bottomPipe = new Pipe(pipeX, randomPipeY + pipeHeight + openingSpace, pipeWidth, pipeHeight, bottomPipeImg);
         pipes.add(bottomPipe);
+
+        if (random.nextDouble() < 0.4) {
+            int coinX = pipeX + pipeWidth + 20; // a bit after the pipes
+            int coinY = bottomPipe.y - 100 + random.nextInt(80); // between pipes
+            int coinSize = 24;
+            coins.add(new Coin(coinX, coinY, coinSize, coinSize, coinImg));
+        }
     }
 
     public void paintComponent(Graphics g) {
@@ -116,6 +126,11 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             Pipe pipe = pipes.get(i);
             g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
         }
+        for (Coin coin : coins) {
+            if (!coin.collected) {
+                g.drawImage(coin.img, coin.x, coin.y, coin.width, coin.height, null);
+            }
+        }
 
         // Score
         g.setColor(Color.BLACK);
@@ -131,6 +146,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
         } else {
             g.drawString("Score:" + (int) score, 10, 35);
+            g.setColor(Color.YELLOW);
+            g.drawString("Coins: " + coinsCollected, 10, 65);
 
             // Display reverse gravity timer if active
             if (reverseGravityActive) {
@@ -200,6 +217,17 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 (reverseGravityActive && bird.y <= 0)) {
             gameOver = true;
         }
+
+        for (int i = 0; i < coins.size(); i++) {
+            Coin coin = coins.get(i);
+            coin.x += velocityX;
+
+            if (!coin.collected && collision(bird, coin)) {
+                coin.collected = true;
+                score += 1;
+                coinsCollected++;
+            }
+        }
     }
 
     private void activateReverseGravity() {
@@ -215,6 +243,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     }
 
     boolean collision(Bird a, Pipe b) {
+        return a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
+    }
+    boolean collision(Bird a, Coin b) {
         return a.x < b.x + b.width &&
                 a.x + a.width > b.x &&
                 a.y < b.y + b.height &&
@@ -272,6 +306,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     }
 
     private void resetGame() {
+        coins.clear();
+
         bird.y = birdY;
         velocityY = 0;
         pipes.clear();
