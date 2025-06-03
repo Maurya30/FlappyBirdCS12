@@ -12,14 +12,17 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     int boardWidth = 360;
     int boardHeight = 640;
     int lastScoreMilestone = 0;
-
-    // Reverse gravity mode variables
     boolean reverseGravityActive = false;
     boolean reverseGravityTriggered = false;
     long reverseGravityStartTime;
-    final int REVERSE_GRAVITY_DURATION = 10000; // 20 seconds in milliseconds
-    final int REVERSE_GRAVITY_THRESHOLD = 2;
-    final int REVERSE_JUMP_FORCE = 10; // Jump force in reverse mode
+    final int reverse_gravity_duration = 10000;
+    final int reverse_gravity_score = 4;
+    final int reverse_jump_force = 10;
+    boolean eagleEffectActive = false;
+    long eagleEffectStartTime;
+    final int EAGLE_EFFECT_DURATION = 5000; // 5 seconds
+    final int WEAKENED_JUMP_FORCE = -4; // Much weaker jump (was -10)
+
 
     // Images
     Image backgroundImg;
@@ -135,12 +138,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     }
 
     public void draw(Graphics g) {
-        // Background with different color if in reverse gravity mode
-
-            g.drawImage(backgroundImg, 0, 0, this.boardWidth, this.boardHeight, null);
-
-
-        // Bird
+        g.drawImage(backgroundImg, 0, 0, this.boardWidth, this.boardHeight, null);
         g.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height, null);
 
         // Pipes
@@ -150,7 +148,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
         for (Coin coin : coins) {
             if (!coin.collected) {
-                double scale = 1 + 0.1 * Math.sin(System.currentTimeMillis() / 200.0); // Pulsing effect
+                double scale = 1 + 0.1 * Math.sin(System.currentTimeMillis() / 200.0);
                 int drawWidth = (int)(coin.width * scale);
                 int drawHeight = (int)(coin.height * scale);
                 int drawX = coin.x + (coin.width - drawWidth) / 2;
@@ -192,7 +190,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
             // Display reverse gravity timer if active
             if (reverseGravityActive) {
-                long timeLeft = REVERSE_GRAVITY_DURATION - (System.currentTimeMillis() - reverseGravityStartTime);
+                long timeLeft = reverse_gravity_duration - (System.currentTimeMillis() - reverseGravityStartTime);
                 int secondsLeft = (int) (timeLeft / 1000) + 1;
                 g.setColor(Color.RED);
                 g.drawString("Reverse: " + secondsLeft + "s", 200, 35);
@@ -210,13 +208,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     public void move() {
         // Handle reverse gravity activation
-        if (!reverseGravityTriggered && (int) score >= REVERSE_GRAVITY_THRESHOLD) {
+        if (!reverseGravityTriggered && (int) score >= reverse_gravity_score) {
             activateReverseGravity();
         }
-
         // Handle reverse gravity timeout
         if (reverseGravityActive &&
-                System.currentTimeMillis() - reverseGravityStartTime >= REVERSE_GRAVITY_DURATION) {
+                System.currentTimeMillis() - reverseGravityStartTime >= reverse_gravity_duration) {
             deactivateReverseGravity();
         }
 
@@ -271,7 +268,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
         for (int i = 0; i < eagles.size(); i++) {
             Eagle eagle = eagles.get(i);
-            eagle.x += velocityX;
+            eagle.updatePosition(velocityX); // Use the new method with sin wave movement
 
             // Remove eagles that go off-screen
             if (eagle.x + eagle.width < 0) {
@@ -279,16 +276,19 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 i--;
                 continue;
             }
+
             if (collision(bird, eagle)) {
-                // Reduce jump force by half (minimum 5px)
-                currentJumpForce = Math.max((int) (currentJumpForce * 1.5), -5); // Less negative = smaller jump
+                eagleEffectActive = true;
+                eagleEffectStartTime = System.currentTimeMillis();
+
+                System.out.println("Eagle hit! Jump weakened for 5 seconds.");
                 eagles.remove(i);
                 i--;
             }
         }
         for (int i = 0; i < bombs.size(); i++) {
             Bomb bomb = bombs.get(i);
-            bomb.x += velocityX;
+            bomb.updatePosition(velocityX); // Use the new method with sin wave movement
 
             // Remove bombs that go off-screen
             if (bomb.x + bomb.width < 0) {
@@ -401,7 +401,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 }
             } else {
                 if (reverseGravityActive) {
-                    velocityY = REVERSE_JUMP_FORCE;
+                    velocityY = reverse_jump_force;
                 } else {
                     velocityY = currentJumpForce;
                 }
@@ -450,7 +450,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         flappyBird.requestFocus();
         frame.setVisible(true);
     }
-
     @Override
     public void keyTyped(KeyEvent e) {}
 
