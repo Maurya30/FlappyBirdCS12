@@ -1,10 +1,15 @@
+package src;
+
 import java.awt.*;
 
 public class Coin {
 
-        int x, y, width, height;
-        Image img;
-        boolean collected = false;
+        public int x;
+    public int y;
+    public int width;
+    public int height;
+        public Image img;
+        public boolean collected = false;
 
         public Coin(int x, int y, int width, int height, Image img) {
             this.x = x;
