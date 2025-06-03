@@ -150,7 +150,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
         for (Coin coin : coins) {
             if (!coin.collected) {
-                g.drawImage(coin.img, coin.x, coin.y, coin.width, coin.height, null);
+                double scale = 1 + 0.1 * Math.sin(System.currentTimeMillis() / 200.0); // Pulsing effect
+                int drawWidth = (int)(coin.width * scale);
+                int drawHeight = (int)(coin.height * scale);
+                int drawX = coin.x + (coin.width - drawWidth) / 2;
+                int drawY = coin.y + (coin.height - drawHeight) / 2;
+
+                g.drawImage(coin.img, drawX, drawY, drawWidth, drawHeight, null);
             }
         }
         for (Eagle eagle : eagles) {
