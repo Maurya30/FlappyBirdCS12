@@ -20,8 +20,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     final int reverse_jump_force = 10;
     boolean eagleEffectActive = false;
     long eagleEffectStartTime;
-    final int EAGLE_EFFECT_DURATION = 5000; // 5 seconds
-    final int WEAKENED_JUMP_FORCE = -4; // Much weaker jump (was -10)
+    final int eagle_effect_duration = 8000;
+    final int jump_force = -4; // Much weaker jump (was -10)
 
 
     // Images
@@ -110,25 +110,71 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         Pipe bottomPipe = new Pipe(pipeX, randomPipeY + pipeHeight + openingSpace, pipeWidth, pipeHeight, bottomPipeImg);
         pipes.add(bottomPipe);
 
-        if (random.nextDouble() < 0.4) {
-            int coinX = pipeX + pipeWidth + 20; // a bit after the pipes
-            int coinY = bottomPipe.y - 100 + random.nextInt(80); // between pipes
+        // Calculate the gap between pipes for safe spawning
+        int gapTop = topPipe.y + topPipe.height + 20; // 20px buffer from top pipe
+        int gapBottom = bottomPipe.y - 20; // 20px buffer from bottom pipe
+        int gapHeight = gapBottom - gapTop;
+
+        // Coin spawning (40% chance) - only in the gap
+        if (random.nextDouble() < 0.4 && gapHeight > 30) {
+            int coinX = pipeX + pipeWidth + 30;
+            int coinY = gapTop + random.nextInt(Math.max(1, gapHeight - 24));
             int coinSize = 24;
             coins.add(new Coin(coinX, coinY, coinSize, coinSize, coinImg));
         }
-        if (random.nextDouble() < 0.2) { // 20% chance
-            int eagleX = boardWidth;
-            int eagleY = random.nextInt(boardHeight - 100);
-            int eagleWidth = 50;
-            int eagleHeight = 50;
-            eagles.add(new Eagle(eagleX, eagleY, eagleWidth, eagleHeight, eagleImg));
+
+        if (random.nextDouble() < 0.2) {
+            int eagleX = boardWidth + 200; // Start from far right
+            int eagleY;
+
+            // Choose safe zones that avoid all pipe areas
+            // Option 1: High in the sky (above where pipes can reach)
+            // Option 2: Low on the ground (below where pipes can reach)
+            // Option 3: In the current gap if it's big enough
+
+            int option = random.nextInt(3);
+            if (option == 0) {
+                // High zone - above any possible pipe
+                eagleY = 50 + random.nextInt(80); // Top 130px of screen
+            } else if (option == 1) {
+                // Low zone - below any possible pipe
+                eagleY = boardHeight - 150 + random.nextInt(80); // Bottom 150px of screen
+            } else {
+                // Current gap if big enough, otherwise use high zone
+                if (gapHeight > 80) {
+                    eagleY = gapTop + 20 + random.nextInt(gapHeight - 70);
+                } else {
+                    eagleY = 50 + random.nextInt(80); // Fall back to high zone
+                }
+            }
+
+            eagles.add(new Eagle(eagleX, eagleY, 50, 50, eagleImg));
+            System.out.println("Eagle spawned");
         }
-        if (random.nextDouble() < 0.15) { // 15% chance
-            int bombX = boardWidth;
-            int bombY = random.nextInt(boardHeight - 100);
-            int bombWidth = 30;
-            int bombHeight = 30;
-            bombs.add(new Bomb(bombX, bombY, bombWidth, bombHeight, bombImg));
+
+        // Bomb spawning (15% chance) - similar safe zone logic
+        if (random.nextDouble() < 0.15) {
+            int bombX = boardWidth + 250; // Start even further right
+            int bombY;
+
+            int option = random.nextInt(3);
+            if (option == 0) {
+                // High zone
+                bombY = 50 + random.nextInt(80);
+            } else if (option == 1) {
+                // Low zone
+                bombY = boardHeight - 150 + random.nextInt(80);
+            } else {
+                // Current gap if big enough
+                if (gapHeight > 60) {
+                    bombY = gapTop + 15 + random.nextInt(gapHeight - 45);
+                } else {
+                    bombY = boardHeight - 150 + random.nextInt(80); // Fall back to low zone
+                }
+            }
+
+            bombs.add(new Bomb(bombX, bombY, 30, 30, bombImg));
+            System.out.println("Bomb spawned at: " + bombX + ", " + bombY + " (gap: " + gapTop + "-" + gapBottom + ")");
         }
     }
 
@@ -244,7 +290,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
 
         // Increase difficulty every 2 points
-        if ((int) score % 2 == 0 && score > 0 && (int) score != lastScoreMilestone) {
+        if ((int) score % 15 == 0 && score > 0 && (int) score != lastScoreMilestone) {
             velocityX = Math.max(velocityX - 1, -12);
             updatePipeTimerDelay();
             lastScoreMilestone = (int) score;
@@ -288,7 +334,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
         for (int i = 0; i < bombs.size(); i++) {
             Bomb bomb = bombs.get(i);
-            bomb.updatePosition(velocityX); // Use the new method with sin wave movement
+            bomb.updatePosition(velocityX);
 
             // Remove bombs that go off-screen
             if (bomb.x + bomb.width < 0) {
@@ -428,6 +474,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         reverseGravityTriggered = false;
         gravity = 1;
         bombCollision = false;
+
+        eagleEffectActive = false;
 
         updatePipeTimerDelay();
         gameLoop.start();
