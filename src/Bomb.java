@@ -11,14 +11,16 @@ public class Bomb {
     int originalY; // Store the original Y position for sin wave calculation
     double timeOffset; // Each bomb gets a unique time offset
     double waveAmplitude = 35; // Slightly different amplitude than eagles
-    double waveSpeed = 0.04; // Slightly different speed for variety
+    double waveSpeed = 0.01;
+    public boolean collected = false;
+// Slightly different speed for variety
 
     public Bomb(int x, int y, int width, int height, Image img) {
         this.x = x;
         this.y = y;
         this.originalY = y; // Remember the center line
-        this.width = width;
-        this.height = height;
+        this.width = 2*width;
+        this.height = 2*height;
         this.img = img;
         this.timeOffset = Math.random() * Math.PI * 2; // Random starting point in wave
     }

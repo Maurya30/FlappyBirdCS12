@@ -11,7 +11,7 @@ public class Eagle {
     int originalY; // Store the original Y position for sin wave calculation
     double timeOffset; // Each eagle gets a unique time offset for wave variation
     double waveAmplitude = 40; // How far up/down the sin wave goes
-    double waveSpeed = 0.05; // How fast the wave oscillates
+    double waveSpeed = 0.01; // How fast the wave oscillates
 
     public Eagle(int x, int y, int width, int height, Image img) {
         this.x = x;
@@ -25,7 +25,7 @@ public class Eagle {
 
     public void updatePosition(double velocityX) {
         // Move horizontally from right to left (same speed as pipes)
-        this.x += velocityX;
+        this.x += 2*velocityX;
 
         // Calculate sin wave movement based on horizontal position
         // Using x position for wave calculation makes it smooth and consistent

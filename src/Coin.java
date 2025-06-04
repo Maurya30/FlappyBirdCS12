@@ -14,8 +14,8 @@ public class Coin {
         public Coin(int x, int y, int width, int height, Image img) {
             this.x = x;
             this.y = y;
-            this.width = width;
-            this.height = height;
+            this.width = 2*width;
+            this.height = 2*height;
             this.img = img;
         }
 
