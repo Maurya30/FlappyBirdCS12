@@ -382,9 +382,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             if (gameOver) {
-                if (bombCollision && coinsCollected >= 10) {
+                if (coinsCollected >= 1) {
                     // Revival option for bomb collision
-                    coinsCollected -= 10; // Deduct coins for revive
+                    coinsCollected -= 1; // Deduct coins for revive
                     bombCollision = false;
                     gameOver = false;
 
