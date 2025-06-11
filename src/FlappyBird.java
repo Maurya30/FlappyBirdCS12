@@ -1,4 +1,3 @@
-// FlappyBird.java
 import src.*;
 
 import java.awt.*;
@@ -20,7 +19,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     final int reverse_jump_force = 10;
     boolean eagleEffectActive = false;
     long eagleEffectStartTime;
-    final int EAGLE_EFFECT_DURATION = 5000; // 5 seconds
+    final int eagle_effect_duration = 5000; // 5 seconds
     final int WEAKENED_JUMP_FORCE = -2; // Much weaker jump (was -10)
     private boolean showTitleScreen = true;
     private boolean gameStarted = false;
@@ -143,16 +142,43 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         super.paintComponent(g);
         draw(g);
     }
-
     public void draw(Graphics g) {
+        // Always draw background
         g.drawImage(backgroundImg, 0, 0, this.boardWidth, this.boardHeight, null);
+
+        if (showTitleScreen) {
+            drawTitleScreen(g);
+        } else if (gameOver) {
+            drawGameplay(g); // Draw game elements in background
+            drawGameOverScreen(g);
+        } else {
+            drawGameplay(g);
+        }
+    }
+    private void drawTitleScreen(Graphics g) {
+        // Draw title screen image if available, otherwise use text
+        if (titleScreenImg != null) {
+            g.drawImage(titleScreenImg, 0, 0, boardWidth, boardHeight, null);
+
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Pixelify Sans", Font.BOLD, 24));
+            String highScoreText = "" + (int)hs;
+
+            g.drawString(highScoreText, 118, 463);
+        } else {
+            System.out.println("Error loading Menu");
+        }
+    }
+    private void drawGameplay(Graphics g) {
+        // Draw bird
         g.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height, null);
 
-        // Pipes
-        for (int i = 0; i < pipes.size(); i++) {
-            Pipe pipe = pipes.get(i);
+        // Draw pipes
+        for (Pipe pipe : pipes) {
             g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
         }
+
+        // Draw coins
         for (Coin coin : coins) {
             if (!coin.collected) {
                 double scale = 1 + 0.1 * Math.sin(System.currentTimeMillis() / 200.0);
@@ -160,39 +186,26 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 int drawHeight = (int)(coin.height * scale);
                 int drawX = coin.x + (coin.width - drawWidth) / 2;
                 int drawY = coin.y + (coin.height - drawHeight) / 2;
-
                 g.drawImage(coin.img, drawX, drawY, drawWidth, drawHeight, null);
             }
         }
+
+        // Draw eagles
         for (Eagle eagle : eagles) {
             g.drawImage(eagle.img, eagle.x, eagle.y, eagle.width, eagle.height, null);
         }
 
         // Draw bombs
         for (Bomb bomb : bombs) {
-
             g.drawImage(bomb.img, bomb.x, bomb.y, bomb.width, bomb.height, null);
         }
 
-        // Score
-        g.setColor(Color.BLACK);
-        g.setFont(new Font("Pixelify Sans", Font.PLAIN, 32));
-
-        if (gameOver) {
-            g.drawString("Game Over: " + (int) score, 70, 240);
-            g.setColor(Color.WHITE);
-            if(score>hs){
-                g.drawString("HighScore: " + (int) score, 70, 280);
-            } else {
-                g.drawString("HighScore: " + (int) hs, 70, 280);
-            }
-            if (coinsCollected >= 1) {
-                g.setColor(Color.RED);
-                g.setFont(new Font("Pixelify Sans", Font.BOLD, 24));
-                g.drawString("Press SPACE to revive (10 coins)", 40, 320);
-            }
-        } else {
+        // Score and UI elements (only show during active gameplay)
+        if (gameStarted && !gameOver) {
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Pixelify Sans", Font.PLAIN, 32));
             g.drawString("Score:" + (int) score, 10, 35);
+
             g.setColor(Color.YELLOW);
             g.drawString("Coins: " + coinsCollected, 10, 65);
 
@@ -201,8 +214,89 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 long timeLeft = reverse_gravity_duration - (System.currentTimeMillis() - reverseGravityStartTime);
                 int secondsLeft = (int) (timeLeft / 1000) + 1;
                 g.setColor(Color.RED);
-                g.drawString("Reverse: " + secondsLeft + "s", 200, 35);
+                g.drawString("Reverse: " + secondsLeft + "s", 70, 620);
             }
+
+            // Display eagle effect timer if active
+            if (eagleEffectActive) {
+                long timeLeft = eagle_effect_duration - (System.currentTimeMillis() - eagleEffectStartTime);
+                int secondsLeft = (int) (timeLeft / 1000) + 1;
+                g.setColor(Color.BLUE);
+                g.drawString("Weakened: " + secondsLeft + "s", 70, 580);
+            }
+        }
+    }
+    private void drawGameOverScreen(Graphics g) {
+        if (gameOverScreenImg != null) {
+            g.drawImage(gameOverScreenImg, 0, 0, boardWidth, boardHeight, null);
+
+            g.setColor(Color.BLACK);
+            g.setFont(new Font("Pixelify Sans", Font.BOLD, 24));
+            String scoreText = "Score: " + (int) score;
+            g.drawString(scoreText, 131, 337);
+
+            g.setColor(Color.BLACK);
+            String highScoreText;
+            if (score > hs) {
+                highScoreText = "" + (int) score;
+            } else {
+                highScoreText = "" + (int) hs;
+            }
+            g.drawString(highScoreText, 118, 463);
+
+            // Revive option if player has coins
+            if (coinsCollected >= 5) {
+                g.setColor(Color.YELLOW);
+                g.setFont(new Font("Pixelify Sans", Font.BOLD, 20));
+                String reviveText = "Press R to revive (5 coin)";
+                g.drawString(reviveText, 50, 50);
+            }
+        }
+    }
+    private void startGame() {
+        showTitleScreen = false;
+        gameStarted = true;
+        gameOver = false;
+        placePipeTimer.start();
+    }
+    private void restartGame() {
+        saveHighscore();
+
+        // Reset all game variables
+        coins.clear();
+        eagles.clear();
+        bombs.clear();
+        bird.y = birdY;
+        velocityY = 0;
+        pipes.clear();
+        gameOver = false;
+        score = 0;
+        velocityX = -4;
+        lastScoreMilestone = 0;
+
+        // Reset special effects
+        reverseGravityActive = false;
+        reverseGravityTriggered = false;
+        gravity = 1;
+        bombCollision = false;
+        eagleEffectActive = false;
+
+        // Start timers
+        updatePipeTimerDelay();
+        placePipeTimer.start();
+    }
+    private void reviveGame() {
+        if (coinsCollected >= 5) {
+            coinsCollected -= 5; // Deduct coins for revive
+            bombCollision = false;
+            gameOver = false;
+
+            // Reset bird position
+            bird.y = boardHeight / 2;
+            velocityY = 0;
+
+            // Restart timers
+            placePipeTimer.start();
         }
     }
 
@@ -270,7 +364,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
             if (!coin.collected && collision(bird, coin)) {
                 coin.collected = true;
-//                score += 1;
                 coinsCollected++;
             }
         }
@@ -293,7 +386,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 eagles.remove(i);
                 i--;
             }
-            if (eagleEffectActive && System.currentTimeMillis() - eagleEffectStartTime >= EAGLE_EFFECT_DURATION) {
+            if (eagleEffectActive && System.currentTimeMillis() - eagleEffectStartTime >= eagle_effect_duration) {
                 eagleEffectActive = false;
                 System.out.println("Eagle effect ended. Jump restored to normal.");
             }
@@ -359,11 +452,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        move();
+        if (gameStarted && !gameOver) {
+            move();
+        }
         repaint();
         if (gameOver) {
             placePipeTimer.stop();
-            gameLoop.stop();
         }
     }
     private double readHighScore() {
@@ -392,36 +486,28 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            if (gameOver) {
-                if (coinsCollected >= 1) {
-                    // Revival option for bomb collision
-                    coinsCollected -= 1; // Deduct coins for revive
-                    bombCollision = false;
-                    gameOver = false;
-
-                    // Reset bird position
-                    bird.y = boardHeight / 2;
-                    velocityY = 0;
-
-                    // Restart timers
-                    gameLoop.start();
-                    placePipeTimer.start();
-                } else {
-                    // Normal restart when game is over
-                    saveHighscore();
-                    resetGame();
-                }
-            } else {
-                // Determine jump force based on active effects
+            if (showTitleScreen) {
+                // Start the game from title screen
+                startGame();
+            } else if (gameOver) {
+                // Restart the game from game over screen
+                restartGame();
+            } else if (gameStarted) {
+                // Normal jump during gameplay
                 if (reverseGravityActive) {
                     velocityY = reverse_jump_force;
                 } else if (eagleEffectActive) {
-                    velocityY = WEAKENED_JUMP_FORCE; // Use the weakened jump force
-                    System.out.println("Weakened jump applied!");
+                    velocityY = WEAKENED_JUMP_FORCE;
                 } else {
-                    velocityY = normalJumpForce; // Normal jump
+                    velocityY = normalJumpForce;
                 }
             }
+        } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            // Exit the game
+            System.exit(0);
+        } else if (e.getKeyCode() == KeyEvent.VK_R && gameOver && coinsCollected >= 5) {
+            // Revive option
+            reviveGame();
         }
     }
     private void resetGame() {
