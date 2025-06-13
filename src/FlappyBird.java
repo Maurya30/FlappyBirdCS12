@@ -35,6 +35,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     Image bombImg;
     Image titleScreenImg;
     Image gameOverScreenImg;
+    Image bubble;
 
     // Bird variables
     int birdX = boardWidth/8;
@@ -58,6 +59,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     ArrayList<Coin> coins = new ArrayList<>();
     ArrayList<Eagle> eagles = new ArrayList<>();
     ArrayList<Bomb> bombs = new ArrayList<>();
+    ArrayList<Bubble> bubbles = new ArrayList<>();
     int normalJumpForce = -10;
     int currentJumpForce = normalJumpForce;
     boolean bombCollision = false;
@@ -92,12 +94,14 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             bombImg = new ImageIcon(getClass().getResource("./bomb.png")).getImage();
             titleScreenImg = new ImageIcon(getClass().getResource("./titlescreen.png")).getImage();
             gameOverScreenImg = new ImageIcon(getClass().getResource("./EndScreen.png")).getImage();
+            bubble = new ImageIcon(getClass().getResource("./bubble.png")).getImage();
         } catch (Exception e) {
             System.err.println("Error loading images: " + e.getMessage());
         }
 
         bird = new Bird(birdX, birdY, birdWidth, birdHeight, birdImg);
         pipes = new ArrayList<Pipe>();
+
 
         placePipeTimer = new Timer(1500, new ActionListener() {
             @Override
@@ -178,6 +182,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         // Draw bird
         g.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height, null);
 
+
+
         // Draw pipes
         for (Pipe pipe : pipes) {
             g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
@@ -225,6 +231,9 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             if (underwaterMode) {
                 g.setColor(new Color(0, 100, 255, 100)); // semi-transparent blue
                 g.fillRect(0, 0, boardWidth, boardHeight);
+                for (Bubble b : bubbles) {
+                    g.drawImage(bubble, b.x, b.y, b.size, b.size, null);
+                }
             }
 
             // Display eagle effect timer if active
@@ -291,6 +300,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         gravity = 1;
         bombCollision = false;
         eagleEffectActive = false;
+        underwaterTriggered = false;
+        underwaterMode = false;
 
         // Start timers
         updatePipeTimerDelay();
@@ -331,6 +342,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
         if (!underwaterTriggered && (int)score >= 2) {
             activateUnderwaterMode();
+
         }
         if (underwaterMode && System.currentTimeMillis() - underwaterStartTime >= UNDERWATER_DURATION) {
             deactivateUnderwaterMode();
@@ -339,6 +351,26 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         // Apply gravity
         velocityY += gravity;
         bird.y += velocityY;
+
+        if (underwaterMode) {
+            // 5% chance to spawn a new bubble each frame
+            if (Math.random() < 0.05) {
+                int x = (int) (Math.random() * boardWidth);
+                int size = 10 + (int)(Math.random() * 15); // 10–25 px
+                int velocityY = -1 - (int)(Math.random() * 2); // -1 or -2
+                bubbles.add(new Bubble(x, boardHeight, size, velocityY));
+            }
+
+            // Move and remove expired bubbles
+            for (int i = 0; i < bubbles.size(); i++) {
+                Bubble b = bubbles.get(i);
+                b.move();
+                if (b.isExpired()) {
+                    bubbles.remove(i);
+                    i--;
+                }
+            }
+        }
 
         // Apply boundaries (different for reverse gravity)
         if (reverseGravityActive) {
