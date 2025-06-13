@@ -8,24 +8,22 @@ import javax.swing.*;
 import java.io.*;
 
 public class FlappyBird extends JPanel implements ActionListener, KeyListener {
-    int boardWidth = 360;
-    int boardHeight = 640;
-    int lastScoreMilestone = 0;
-    boolean reverseGravityActive = false;
-    boolean reverseGravityTriggered = false;
-    long reverseGravityStartTime;
-    final int reverse_gravity_duration = 10000;
-    final int reverse_gravity_score = 10;
-    final int reverse_jump_force = 10;
-    boolean eagleEffectActive = false;
-    long eagleEffectStartTime;
-    final int eagle_effect_duration = 5000; // 5 seconds
-    final int WEAKENED_JUMP_FORCE = -7; // Much weaker jump (was -10)
+    private int boardWidth = 360;
+    private int boardHeight = 640;
+    private int lastScoreMilestone = 0;
+    private boolean reverseGravityActive = false;
+    private boolean reverseGravityTriggered = false;
+    private long reverseGravityStartTime;
+    private int reverse_gravity_duration = 10000;
+    private int reverse_gravity_score = 10;
+    private int reverse_jump_force = 10;
+    private boolean eagleEffectActive = false;
+    private long eagleEffectStartTime;
+    private int eagle_effect_duration = 5000;
+    private int WEAKENED_JUMP_FORCE = -7;
     private boolean showTitleScreen = true;
     private boolean gameStarted = false;
 
-
-    // Images
     Image backgroundImg;
     Image birdImg;
     Image topPipeImg;
@@ -36,23 +34,21 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     Image titleScreenImg;
     Image gameOverScreenImg;
 
-    // Bird variables
-    int birdX = boardWidth/8;
-    int birdY = boardHeight/2;
-    int birdWidth = 34;
-    int birdHeight = 24;
+    private int birdX = boardWidth/8;
+    private int birdY = boardHeight/2;
+    private int birdWidth = 34;
+    private int birdHeight = 24;
 
-    // Pipe variables
-    int pipeX = boardWidth;
-    int pipeY = 0;
-    int pipeWidth = 64;
-    int pipeHeight = 512;
+    private int pipeX = boardWidth;
+    private int pipeY = 0;
+    private int pipeWidth = 64;
+    private int pipeHeight = 512;
 
     // game logic
     Bird bird;
-    double velocityX = -4;
-    int velocityY = 0;
-    int gravity = 1;
+    private double velocityX = -4;
+    private int velocityY = 0;
+    private int gravity = 1;
 
     ArrayList<Pipe> pipes;
     ArrayList<Coin> coins = new ArrayList<>();
@@ -444,7 +440,7 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     void activateUnderwaterMode() {
         underwaterMode = true;
-        underwaterTriggered = true;   // Prevent reactivation
+        underwaterTriggered = true;
         underwaterStartTime = System.currentTimeMillis();
         gravity = 1;
         velocityX = -2;
@@ -452,8 +448,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
     void deactivateUnderwaterMode() {
         underwaterMode = false;
-        gravity = 1;              // Reset gravity
-        velocityX = -4;           // Reset speed
+        gravity = 1;
+        velocityX = -4;
     }
 
     boolean collision(Bird a, Pipe b) {
