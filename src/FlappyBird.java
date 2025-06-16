@@ -45,7 +45,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     private int pipeWidth = 64;
     private int pipeHeight = 512;
 
-    // game logic
     Bird bird;
     private double velocityX = -4;
     private int velocityY = 0;
@@ -77,9 +76,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         setPreferredSize(new Dimension(boardWidth, boardHeight));
         setFocusable(true);
         addKeyListener(this);
-
-
-        // Load images (paths might need adjustment)
         try {
             backgroundImg = new ImageIcon(getClass().getResource("./flappybirdbg.png")).getImage();
             birdImg = new ImageIcon(getClass().getResource("./flappybird.png")).getImage();
@@ -97,8 +93,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
 
         bird = new Bird(birdX, birdY, birdWidth, birdHeight, birdImg);
         pipes = new ArrayList<Pipe>();
-
-
         placePipeTimer = new Timer(1500, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -122,19 +116,19 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         pipes.add(bottomPipe);
 
         if (random.nextDouble() < 0.6) {
-            int coinX = pipeX + pipeWidth + 20; // a bit after the pipes
-            int coinY = bottomPipe.y - 100 + random.nextInt(80); // between pipes
+            int coinX = pipeX + pipeWidth + 20;
+            int coinY = bottomPipe.y - 100 + random.nextInt(80);
             int coinSize = 24;
             coins.add(new Coin(coinX, coinY, coinSize, coinSize, coinImg));
         }
-        if (random.nextDouble() < 0.2 ) { // 20% chance
+        if (random.nextDouble() < 0.2 ) {
             int eagleX = boardWidth;
             int eagleY = random.nextInt(boardHeight - 100);
             int eagleWidth = 50;
             int eagleHeight = 50;
             eagles.add(new Eagle(eagleX, eagleY, eagleWidth, eagleHeight, eagleImg));
         }
-        if (random.nextDouble() < 0.1) { // 15% chance
+        if (random.nextDouble() < 0.1) {
             int bombX = boardWidth;
             int bombY = random.nextInt(boardHeight - pipeY);
             int bombWidth = 30;
@@ -148,20 +142,18 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         draw(g);
     }
     public void draw(Graphics g) {
-        // Always draw background
         g.drawImage(backgroundImg, 0, 0, this.boardWidth, this.boardHeight, null);
 
         if (showTitleScreen) {
             drawTitleScreen(g);
         } else if (gameOver) {
-            drawGameplay(g); // Draw game elements in background
+            drawGameplay(g);
             drawGameOverScreen(g);
         } else {
             drawGameplay(g);
         }
     }
     private void drawTitleScreen(Graphics g) {
-        // Draw title screen image if available, otherwise use text
         if (titleScreenImg != null) {
             g.drawImage(titleScreenImg, 0, 0, boardWidth, boardHeight, null);
 
@@ -175,17 +167,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
     }
     private void drawGameplay(Graphics g) {
-        // Draw bird
         g.drawImage(birdImg, bird.x, bird.y, bird.width, bird.height, null);
 
-
-
-        // Draw pipes
         for (Pipe pipe : pipes) {
             g.drawImage(pipe.img, pipe.x, pipe.y, pipe.width, pipe.height, null);
         }
 
-        // Draw coins
         for (Coin coin : coins) {
             if (!coin.collected) {
                 double scale = 1 + 0.1 * Math.sin(System.currentTimeMillis() / 200.0);
@@ -196,18 +183,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 g.drawImage(coin.img, drawX, drawY, drawWidth, drawHeight, null);
             }
         }
-
-        // Draw eagles
         for (Eagle eagle : eagles) {
             g.drawImage(eagle.img, eagle.x, eagle.y, eagle.width, eagle.height, null);
         }
-
-        // Draw bombs
         for (Bomb bomb : bombs) {
             g.drawImage(bomb.img, bomb.x, bomb.y, bomb.width, bomb.height, null);
         }
-
-        // Score and UI elements (only show during active gameplay)
         if (gameStarted && !gameOver) {
             g.setColor(Color.BLACK);
             g.setFont(new Font("Pixelify Sans", Font.PLAIN, 32));
@@ -216,7 +197,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             g.setColor(Color.YELLOW);
             g.drawString("Coins: " + coinsCollected, 10, 65);
 
-            // Display reverse gravity timer if active
             if (reverseGravityActive) {
                 long timeLeft = reverse_gravity_duration - (System.currentTimeMillis() - reverseGravityStartTime);
                 int secondsLeft = (int) (timeLeft / 1000) + 1;
@@ -225,14 +205,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
 
             if (underwaterMode) {
-                g.setColor(new Color(0, 100, 255, 100)); // semi-transparent blue
+                g.setColor(new Color(0, 100, 255, 100));
                 g.fillRect(0, 0, boardWidth, boardHeight);
                 for (Bubble b : bubbles) {
                     g.drawImage(bubble, b.x, b.y, b.size, b.size, null);
                 }
             }
-
-            // Display eagle effect timer if active
             if (eagleEffectActive) {
                 long timeLeft = eagle_effect_duration - (System.currentTimeMillis() - eagleEffectStartTime);
                 int secondsLeft = (int) (timeLeft / 1000) + 1;
@@ -260,7 +238,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
             g.drawString(highScoreText, 118, 463);
 
-            // Revive option if player has coins
             if (coinsCollected >= 5) {
                 g.setColor(Color.YELLOW);
                 g.setFont(new Font("Pixelify Sans", Font.BOLD, 20));
@@ -278,7 +255,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     private void restartGame() {
         saveHighscore();
 
-        // Reset all game variables
         coins.clear();
         eagles.clear();
         bombs.clear();
@@ -290,7 +266,6 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         velocityX = -4;
         lastScoreMilestone = 0;
 
-        // Reset special effects
         reverseGravityActive = false;
         reverseGravityTriggered = false;
         gravity = 1;
@@ -299,21 +274,17 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         underwaterTriggered = false;
         underwaterMode = false;
 
-        // Start timers
         updatePipeTimerDelay();
         placePipeTimer.start();
     }
     private void reviveGame() {
         if (coinsCollected >= 5) {
-            coinsCollected -= 5; // Deduct coins for revive
+            coinsCollected -= 5;
             bombCollision = false;
             gameOver = false;
 
-            // Reset bird position
             bird.y = boardHeight / 2;
             velocityY = 0;
-
-            // Restart timers
             placePipeTimer.start();
         }
     }
@@ -327,37 +298,29 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     }
 
     public void move() {
-        // Handle reverse gravity activation
         if (!reverseGravityTriggered && (int) score >= reverse_gravity_score) {
             activateReverseGravity();
         }
-        // Handle reverse gravity timeout
-        if (reverseGravityActive &&
-                System.currentTimeMillis() - reverseGravityStartTime >= reverse_gravity_duration) {
+        if (reverseGravityActive && System.currentTimeMillis() - reverseGravityStartTime >= reverse_gravity_duration) {
             deactivateReverseGravity();
         }
-        if (!underwaterTriggered && (int)score >= 2) {
+        if (!underwaterTriggered && (int)score >= 5) {
             activateUnderwaterMode();
-
         }
         if (underwaterMode && System.currentTimeMillis() - underwaterStartTime >= UNDERWATER_DURATION) {
             deactivateUnderwaterMode();
         }
 
-        // Apply gravity
         velocityY += gravity;
         bird.y += velocityY;
 
         if (underwaterMode) {
-            // 5% chance to spawn a new bubble each frame
             if (Math.random() < 0.05) {
                 int x = (int) (Math.random() * boardWidth);
-                int size = 10 + (int)(Math.random() * 15); // 10–25 px
-                int velocityY = -1 - (int)(Math.random() * 2); // -1 or -2
+                int size = 10 + (int)(Math.random() * 15);
+                int velocityY = -1 - (int)(Math.random() * 2);
                 bubbles.add(new Bubble(x, boardHeight, size, velocityY));
             }
-
-            // Move and remove expired bubbles
             for (int i = 0; i < bubbles.size(); i++) {
                 Bubble b = bubbles.get(i);
                 b.move();
@@ -368,14 +331,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // Apply boundaries (different for reverse gravity)
         if (reverseGravityActive) {
             bird.y = Math.min(bird.y, boardHeight - bird.height);
         } else {
             bird.y = Math.max(bird.y, 0);
         }
 
-        // Move pipes and check collisions
         for (int i = 0; i < pipes.size(); i++) {
             Pipe pipe = pipes.get(i);
             pipe.x += velocityX;
@@ -390,14 +351,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // Increase difficulty every 2 points
         if ((int) score % 4 == 0 && score > 0 && (int) score != lastScoreMilestone) {
             velocityX = Math.max(velocityX - 1, -12);
             updatePipeTimerDelay();
             lastScoreMilestone = (int) score;
         }
 
-        // Ground collision (different for reverse gravity)
         if ((!reverseGravityActive && bird.y > boardHeight) ||
                 (reverseGravityActive && bird.y <= 0)) {
             gameOver = true;
@@ -414,9 +373,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         }
         for (int i = 0; i < eagles.size(); i++) {
             Eagle eagle = eagles.get(i);
-            eagle.updatePosition(velocityX); // Use the new method with sin wave movement
+            eagle.updatePosition(velocityX);
 
-            // Remove eagles that go off-screen
             if (eagle.x + eagle.width < 0) {
                 eagles.remove(i);
                 i--;
@@ -433,21 +391,18 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
             }
             if (eagleEffectActive && System.currentTimeMillis() - eagleEffectStartTime >= eagle_effect_duration) {
                 eagleEffectActive = false;
-                System.out.println("Eagle effect ended. Jump restored to normal.");
+                System.out.println("Eagle effect ended.");
             }
         }
         for (int i = 0; i < bombs.size(); i++) {
             Bomb bomb = bombs.get(i);
-            bomb.updatePosition(velocityX); // Use the new method with sin wave movement
+            bomb.updatePosition(velocityX);
 
-            // Remove bombs that go off-screen
             if (bomb.x + bomb.width < 0) {
                 bombs.remove(i);
                 i--;
                 continue;
             }
-
-            // Check collision
             if (collision(bird, bomb)) {
                 bombCollision = true;
                 gameOver = true;
@@ -462,12 +417,12 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         reverseGravityActive = true;
         reverseGravityTriggered = true;
         reverseGravityStartTime = System.currentTimeMillis();
-        gravity = -1; // Reverse gravity direction
+        gravity = -1;
     }
 
     private void deactivateReverseGravity() {
         reverseGravityActive = false;
-        gravity = 1; // Restore normal gravity
+        gravity = 1;
     }
 
     void activateUnderwaterMode() {
@@ -528,14 +483,14 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         } catch (IOException | NumberFormatException e) {
             System.err.println("Couldn't read high score: " + e.getMessage());
         }
-        return 0.0; // default if no file or invalid content
+        return 0.0;
     }
 
     private void saveHighscore() {
         if (this.score > this.hs) {
             try (PrintWriter pw = new PrintWriter(new FileWriter("highScore.txt"))) {
-                pw.println((int)this.score); // save as integer if you don't want decimals
-                this.hs = this.score; // update in-memory high score too
+                pw.println((int)this.score);
+                this.hs = this.score;
             } catch (IOException e) {
                 System.err.println("Error saving high score: " + e.getMessage());
             }
@@ -546,13 +501,10 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
     public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
             if (showTitleScreen) {
-                // Start the game from title screen
                 startGame();
             } else if (gameOver) {
-                // Restart the game from game over screen
                 restartGame();
             } else if (gameStarted) {
-                // Normal jump during gameplay
                 if (reverseGravityActive) {
                     velocityY = reverse_jump_force;
                 } else if (eagleEffectActive) {
@@ -562,10 +514,8 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
                 }
             }
         } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-            // Exit the game
             System.exit(0);
         } else if (e.getKeyCode() == KeyEvent.VK_R && gameOver && coinsCollected >= 5) {
-            // Revive option
             reviveGame();
         }
     }
@@ -583,13 +533,13 @@ public class FlappyBird extends JPanel implements ActionListener, KeyListener {
         lastScoreMilestone = 0;
         currentJumpForce = normalJumpForce;
 
-        // Reset reverse gravity state
+        // reset reverse gravity
         reverseGravityActive = false;
         reverseGravityTriggered = false;
         gravity = 1;
         bombCollision = false;
 
-        // Reset eagle effect state
+        // reset eagle effect
         eagleEffectActive = false;
         underwaterMode = false;
 

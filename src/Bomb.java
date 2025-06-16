@@ -11,7 +11,6 @@ public class Bomb {
     double waveAmplitude = 35;
     double waveSpeed = 0.01;
     public boolean collected = false;
-// Slightly different speed for variety
 
     public Bomb(int x, int y, int width, int height, Image img) {
         this.x = x;

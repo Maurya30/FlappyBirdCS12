@@ -5,7 +5,7 @@ public class Bubble {
     public int size;
     public int velocityY;
     public long spawnTime;
-    public static final int LIFESPAN = 4000; // milliseconds
+    public static final int lifespan = 4000;
 
     public Bubble(int x, int y, int size, int velocityY) {
         this.x = x;
@@ -16,7 +16,7 @@ public class Bubble {
     }
 
     public boolean isExpired() {
-        return System.currentTimeMillis() - spawnTime > LIFESPAN || y + size < 0;
+        return System.currentTimeMillis() - spawnTime > lifespan || y + size < 0;
     }
 
     public void move() {
